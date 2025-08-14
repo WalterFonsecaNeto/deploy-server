@@ -2,7 +2,11 @@ namespace Deploy.Api.Core.Utils
 {
     public static class YamlUtil
     {
-        private static readonly string CAMINHO_YAML = "/home/walter/.cloudflared/config.yml";
+        //Local do arquivo YAML do Cloudflare Tunnel
+        //private static readonly string CAMINHO_YAML = "/home/walter/.cloudflared/config.yml";
+
+        //Docker do arquivo YAML do Cloudflare Tunnel
+        private static readonly string CAMINHO_YAML = "/root/.cloudflared/config.yml";
 
         public static void AtualizarYaml(string subdominio, int porta)
         {

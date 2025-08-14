@@ -25,8 +25,10 @@ builder.Services.AddCustomServices();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = long.MaxValue; // Kestrel
+    options.Limits.MaxRequestBodySize = long.MaxValue;
+    options.ListenAnyIP(80); // ← aqui força porta 80
 });
+
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = long.MaxValue; // Sem limite prático

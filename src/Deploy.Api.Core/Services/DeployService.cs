@@ -20,10 +20,10 @@ namespace Deploy.Api.Core.Services
 
             var fileName = Path.GetFileName(projetoFile.FileName);
             var extensao = Path.GetExtension(fileName)?.ToLower();
-            
+
             if (extensao != ".zip")
                 return new ResponseViewModel<object>(400, false, new List<string> { "Apenas arquivos ZIP são permitidos." });
-            
+
             if (string.IsNullOrWhiteSpace(subdominio) || subdominio.Length < 3 || subdominio.Length > 63)
                 return new ResponseViewModel<object>(400, false, new List<string> { "Subdomínio inválido. Deve ter entre 3 e 63 caracteres." });
 
@@ -96,8 +96,13 @@ namespace Deploy.Api.Core.Services
 
         private async Task ReiniciarTunnelAsync()
         {
-            var comando = "docker";
-            var argumentos = "compose -f /home/walter/.cloudflared/docker-compose.yml restart tunnel";
+            //Local
+            // var comando = "docker";
+            // var argumentos = "compose -f /home/walter/.cloudflared/docker-compose.yml restart tunnel";
+
+            //Docker 
+            var comando = "docker-compose";
+            var argumentos = "-f /root/.cloudflared/docker-compose.yml restart tunnel";
 
             var processo = new Process
             {
