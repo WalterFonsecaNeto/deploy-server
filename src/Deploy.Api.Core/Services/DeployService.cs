@@ -14,15 +14,21 @@ namespace Deploy.Api.Core.Services
 
         public async Task<ResponseViewModel<object>> ProcessarDeployAsync(IFormFile projetoFile, string subdominio)
         {
+
             if (projetoFile == null || projetoFile.Length == 0)
                 return new ResponseViewModel<object>(400, false, new List<string> { "Nenhum arquivo enviado." });
 
             var fileName = Path.GetFileName(projetoFile.FileName);
             var extensao = Path.GetExtension(fileName)?.ToLower();
-
+            
             if (extensao != ".zip")
                 return new ResponseViewModel<object>(400, false, new List<string> { "Apenas arquivos ZIP são permitidos." });
             
+            if (string.IsNullOrWhiteSpace(subdominio) || subdominio.Length < 3 || subdominio.Length > 63)
+                return new ResponseViewModel<object>(400, false, new List<string> { "Subdomínio inválido. Deve ter entre 3 e 63 caracteres." });
+
+            subdominio = subdominio.ToLowerInvariant();
+
             var caminhoTemp = Path.Combine(Path.GetTempPath(), projetoFile.FileName);
 
             try

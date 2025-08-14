@@ -9,6 +9,10 @@
 **/bin/
 **/obj/
 
+# Projetos extraídos temporários
+/src/Deploy.Api.Application/Projetos/
+
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -54,3 +58,4 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+Dockerfile
