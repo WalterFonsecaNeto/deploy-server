@@ -8,8 +8,15 @@ ERROS ->
 500 - Internal Server Error (exceções)
 
 
-docker build -t deploy-server .
+====== TUNNEL CLOUDFLARED CRIAR EM UM NETWORK HOST
+docker run -d --name cloudflared-tunnel \
+  --network host \
+  --restart unless-stopped \
+  -v /home/walter/.cloudflared:/etc/cloudflared \
+  cloudflare/cloudflared tunnel --config /etc/cloudflared/config.yml run meu-tunnel-pessoal
 
+====== ANTIGO
+docker build -t deploy-server .
 
 docker run -d \
   --name deploy-server\
@@ -19,3 +26,33 @@ docker run -d \
   -v /home/walter/.cloudflared:/root/.cloudflared \
   -v /home/walter/.cloudflared/docker-compose.yml:/root/.cloudflared/docker-compose.yml \
   deploy-server
+=======
+
+
+=============================================================================================================================
+
+
+====== TUNNEL CLOUDFLARED CRIAR EM UM NETWORK ESPECIFICO
+docker run -d --name cloudflared-tunnel \
+  --network deploy-net \
+  --restart unless-stopped \
+  -v /home/walter/.cloudflared:/etc/cloudflared \
+  cloudflare/cloudflared tunnel --config /etc/cloudflared/config.yml run meu-tunnel-pessoal
+
+====== NOVO
+docker build -t deploy-server .
+
+docker run -d \
+  --name deploy-server \
+  --network deploy-net \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /home/walter/Servidor/deploy-server/src/Deploy.Api.Application/Projetos:/app/Projetos \
+  -v /home/walter/.cloudflared:/root/.cloudflared \
+  deploy-server
+======
+
+
+
+sudo chown -R $USER:$USER /home/walter/Servidor/deploy-server/src/Deploy.Api.Application/Projetos
+
+

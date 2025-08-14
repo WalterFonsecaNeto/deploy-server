@@ -13,7 +13,11 @@ namespace Deploy.Api.Core.Utils
             Console.WriteLine("[ConfigYaml] INICIADO COM SUCESSO");
 
             var dominio = $"{subdominio}.walterfonsecaneto.com.br";
-            var entrada = $"  - hostname: {dominio}\n    service: http://localhost:{porta}\n";
+            //BRIGE CUSTOMIZADO
+            var entrada = $"  - hostname: {dominio}\n    service: http://{subdominio}:80\n";
+
+            //HOST
+            // var entrada = $"  - hostname: {dominio}\n    service: http://localhost:{porta}\n";
 
             var yaml = File.ReadAllText(CAMINHO_YAML);
             if (!yaml.Contains(dominio))

@@ -58,7 +58,7 @@ namespace Deploy.Api.Core.Services
                     Console.WriteLine($"🌐 DNS e YAML configurados para {subdominio}");
 
                     // 5️⃣ Reiniciar container do tunnel
-                    await ReiniciarTunnelAsync();
+                    _ = Task.Run(async () => await ReiniciarTunnelAsync());
                 }
 
                 // 6️⃣ Retornar resultado
@@ -101,8 +101,12 @@ namespace Deploy.Api.Core.Services
             // var argumentos = "compose -f /home/walter/.cloudflared/docker-compose.yml restart tunnel";
 
             //Docker 
-            var comando = "docker-compose";
-            var argumentos = "-f /root/.cloudflared/docker-compose.yml restart tunnel";
+            // var comando = "docker-compose";
+            // var argumentos = "-f /root/.cloudflared/docker-compose.yml restart tunnel";
+
+            var comando = "docker";
+            var argumentos = "restart cloudflared-tunnel";
+
 
             var processo = new Process
             {
