@@ -1,0 +1,12 @@
+ERROS -> 
+
+200 - OK (sucesso)
+201 - Created (para criação)
+400 - Bad Request (validação)
+401 - Unauthorized (senha inválida)
+404 - Not Found
+500 - Internal Server Error (exceções)
+
+
+
+
