@@ -9,6 +9,9 @@
 **/bin/
 **/obj/
 
+# User secrets
+*.csproj.user
+
 # Projetos extraídos temporários
 /src/Deploy.Api.Application/Projetos/
 

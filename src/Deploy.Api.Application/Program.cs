@@ -13,6 +13,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+builder.Configuration.AddUserSecrets<Program>(optional: true);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
