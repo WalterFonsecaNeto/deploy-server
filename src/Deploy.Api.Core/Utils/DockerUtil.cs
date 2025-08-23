@@ -120,7 +120,7 @@ namespace Deploy.Api.Core.Utils
             // await ExecutarComandoAsync("docker", $"run -d --restart unless-stopped -p {porta}:80 --name {nome} -e PORT=80 -e ASPNETCORE_URLS=http://0.0.0.0:80 {nome}");
 
             //BRIGE CUSTOMIZADO DOCKER (Criado por mim)
-            await ExecutarComandoAsync("docker", $"run -d --restart unless-stopped --network deploy-net -p {porta}:80 --name {nome} -e PORT=80 -e ASPNETCORE_URLS=http://0.0.0.0:80 {nome}");
+            await ExecutarComandoAsync("docker", $"run -d --name {nome} --restart unless-stopped -e PORT={porta} -e ASPNETCORE_URLS=http://0.0.0.0:{porta} {nome}");
 
             Console.WriteLine("[DockerUtil] FINALIZADO COM SUCESSO");
 

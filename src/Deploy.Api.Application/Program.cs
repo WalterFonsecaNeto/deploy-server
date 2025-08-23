@@ -26,7 +26,15 @@ builder.Services.AddCustomServices();
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = long.MaxValue;
-    options.ListenAnyIP(80); // ← aqui força porta 80
+    var port = Environment.GetEnvironmentVariable("PORT");
+    if (!string.IsNullOrEmpty(port) && int.TryParse(port, out var portNumber))
+    {
+        options.ListenAnyIP(portNumber);
+    }
+    else
+    {
+        options.ListenAnyIP(5000);
+    }
 });
 
 builder.Services.Configure<FormOptions>(options =>
