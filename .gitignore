@@ -10,7 +10,10 @@
 **/obj/
 
 # User secrets
+# User secrets
 *.csproj.user
+*.[Cc]ache
+UserSecretsId
 
 # Projetos extraídos temporários
 /src/Deploy.Api.Application/Projetos/
