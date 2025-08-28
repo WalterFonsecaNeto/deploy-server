@@ -18,9 +18,11 @@ namespace Deploy.Api.Application.Installers
             //Services
             services.AddScoped<IUsuarioService, UsuarioService>();
             services.AddScoped<IDeployService, DeployService>();
+            services.AddScoped<IProjetoService, ProjetoService>();
 
             //Repositories
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            services.AddScoped<IProjetoRepository, ProjetoRepository>();
         }
     }
 }

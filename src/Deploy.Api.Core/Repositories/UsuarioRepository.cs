@@ -12,7 +12,7 @@ namespace Deploy.Api.Core.Repositories
 
         public async Task<int> InserirUsuarioAsync(Usuario usuario)
         {
-            var parametros = new { usuario.Nome, usuario.Email, usuario.Senha, usuario.Criado_Em};
+            var parametros = new { usuario.Nome, usuario.Email, usuario.Senha, usuario.Criado_Em };
             var dbCon = GerarConexaoMySql();
             return await ExecuteAsync(dbCon, UsuarioSql.InserirUsuario, parametros, 60);
         }
@@ -32,6 +32,13 @@ namespace Deploy.Api.Core.Repositories
             return response.FirstOrDefault();
         }
        
+       public async Task<Usuario> ObterUsuarioPorIdAsync(int usuarioId)
+        {
+            var parametros = new { UsuarioId = usuarioId };
+            var dbCon = GerarConexaoMySql();
+            var response = await QueryAsync<Usuario>(dbCon, UsuarioSql.ObterUsuarioPorId, parametros, 60);
+            return response.FirstOrDefault();
+        }
 
     }
 }
