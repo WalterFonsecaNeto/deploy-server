@@ -6,5 +6,6 @@ namespace Deploy.Api.Core.Interfaces.Repositories
       {
             Task<int> CadastrarProjetoAsync(Projeto projeto);
             Task<List<Projeto>> ListarTodosProjetosDeUmUsuariosAsync(int usuarioId);
+            Task<Projeto> ObterProjetoPorIdAsync(int projetoId);       
     }
 }

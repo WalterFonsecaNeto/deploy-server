@@ -22,7 +22,7 @@ namespace Deploy.Api.Application.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> InserirFinancaParceladaAsync([FromForm] DeployRequest request)
         {
-            var response = await _deployService.ProcessarDeployAsync(request.ProjetoFile, request.Subdominio);
+            var response = await _deployService.ProcessarDeployAsync(request);
             return ApiResponse(response);
         }
 

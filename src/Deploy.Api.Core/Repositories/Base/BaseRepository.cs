@@ -30,5 +30,13 @@ namespace Deploy.Api.Core.Repositories.Base
                 async () => await dbCon.ExecuteAsync(sql, parameters, commandTimeout: timeout, commandType: commandType)
             );
         }
+
+        public async Task<T> ExecuteScalarAsync<T>(IDbConnection dbCon, string sql, object parameters = null, int timeout = 60)
+        {
+            return await RetryPolicy.ExecuteAsync(
+                async () => await dbCon.ExecuteScalarAsync<T>(sql, parameters, commandTimeout: timeout)
+            );
+        }
+
     }
 }

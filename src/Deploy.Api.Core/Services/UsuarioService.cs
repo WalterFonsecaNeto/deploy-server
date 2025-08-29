@@ -8,6 +8,7 @@ namespace Deploy.Api.Core.Services
     public class UsuarioService : IUsuarioService
     {
         private readonly IUsuarioRepository _usuarioRepository;
+        
         public UsuarioService(IUsuarioRepository usuarioRepository)
         {
             _usuarioRepository = usuarioRepository;
@@ -22,7 +23,7 @@ namespace Deploy.Api.Core.Services
 
                 if (erroValidacao != null)
                     return erroValidacao;
-               
+
                 var usuarioExistente = await _usuarioRepository.ObterUsuarioPorEmailAsync(usuarioLogin.Email);
 
                 if (usuarioExistente == null)
@@ -50,7 +51,7 @@ namespace Deploy.Api.Core.Services
             {
                 return new ResponseViewModel<List<Usuario>>(500, false, new List<string> { $"Erro ao listar usuários: {ex.Message}" });
             }
-        }  
+        }
         public async Task<ResponseViewModel<Usuario>> CadastrarUsuarioAsync(Usuario usuario)
         {
             try

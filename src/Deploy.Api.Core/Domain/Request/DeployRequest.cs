@@ -6,5 +6,6 @@ namespace Deploy.Api.Core.Domain.Request
     {
         public IFormFile ProjetoFile { get; set; }
         public string Subdominio { get; set; }
+        public int ProjetoId { get; set; }
     }
 }
