@@ -59,3 +59,22 @@ docker run -d \
 sudo chown -R $USER:$USER /home/walter/Servidor/deploy-server/src/Deploy.Api.Application/Projetos
 
 
+
+
+
+
+FINAL 
+
+docker build -t deploy-server .
+
+docker run -d \
+  --name deploy-server \
+  --network host \
+  --restart unless-stopped \
+  -e PORT=1000 \
+  -e MYSQL_CONNECTION="Server=127.0.0.1;Port=3306;Database=deploy_server;Uid=walter_admin;Pwd=M&urG@z5@K6DWNKt;DefaultCommandTimeout=60;" \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /home/walter/Servidor/projetos-em-deploy:/app/Projetos \
+  -v /home/walter/.cloudflared:/root/.cloudflared \
+  deploy-server
+

@@ -26,7 +26,7 @@ namespace Deploy.Api.Core.Repositories
             }
             public async Task<Projeto> ObterProjetoPorIdAsync(int projetoId)
             {
-                  var parametros = new { Id = projetoId };
+                  var parametros = new { ProjetoId = projetoId };
                   var dbCon = GerarConexaoMySql();
                   var response = await QueryAsync<Projeto>(dbCon, ProjetoSql.ObterProjetoPorId, parametros, 60);
                   return response.FirstOrDefault();

@@ -13,7 +13,8 @@ namespace Deploy.Api.Core.Repository.Base
 
         public DatabaseConnection(IConfiguration configuration)
         {
-            _mySqlConnString = configuration.GetConnectionString("MySQLConectionString");
+            _mySqlConnString = configuration["MYSQL_CONNECTION"];
+
 
             if (string.IsNullOrWhiteSpace(_mySqlConnString))
                 throw new ArgumentException("String de conexão mySQL não encontrada.");

@@ -21,7 +21,7 @@ namespace Deploy.Api.Core.Utils
             {
                 type = "CNAME",
                 name = subdominio,
-                content = "fb8dd814-8b2a-4c46-ab2d-e928b5db0909.cfargotunnel.com",
+                content = "b29c49e3-73b1-45e5-92ab-f4249d7c75c2.cfargotunnel.com",
                 ttl = 1,
                 proxied = true
             };

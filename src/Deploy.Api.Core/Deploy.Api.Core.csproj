@@ -9,6 +9,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
+
+    <!-- Pacotes para manipulação de Docker, arquivos zip e YAML -->
+    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
 
     <!-- Dapper e DapperExtensions para consultas simples -->

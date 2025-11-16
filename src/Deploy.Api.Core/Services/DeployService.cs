@@ -40,7 +40,7 @@ namespace Deploy.Api.Core.Services
 
                 //* Valida se dominio existe
                 var dominioExiste = await _dominioRepository.ValidarExistenciaDoDominioPeloSubdominioAsync(dadosDeploy.Subdominio);
-                if (dominioExiste == 0)
+                if (dominioExiste == 1)
                     return new ResponseViewModel<object>(409, false, new List<string> { "Subdomínio já em uso. Escolha outro." });
 
                 //* Cria caminho temporário
@@ -64,11 +64,8 @@ namespace Deploy.Api.Core.Services
 
 
 
-
-
-
                 // 2️⃣ Verificar estado atual do container
-                var (existe, porta, rodando) = await DockerUtil.InspecionarContainerAsync(dadosDeploy.Subdominio);
+                var (existe, porta) = await DockerUtil.InspecionarContainerAsync(dadosDeploy.Subdominio);
                 var novoContainer = !existe;
 
                 // 3️⃣ Build e run do container
@@ -82,7 +79,7 @@ namespace Deploy.Api.Core.Services
                     Console.WriteLine($"🌐 DNS e YAML configurados para {dadosDeploy.Subdominio}");
 
                     // 5️⃣ Reiniciar container do tunnel
-                    _ = Task.Run(async () => await ReiniciarTunnelAsync());
+                    await DockerUtil.ReiniciarTunnelAsync();
                 }
 
                 // 6️⃣ Retornar resultado
@@ -118,44 +115,7 @@ namespace Deploy.Api.Core.Services
             }
         }
 
-        private async Task ReiniciarTunnelAsync()
-        {
-            //Local
-            // var comando = "docker";
-            // var argumentos = "compose -f /home/walter/.cloudflared/docker-compose.yml restart tunnel";
-
-            //Docker 
-            // var comando = "docker-compose";
-            // var argumentos = "-f /root/.cloudflared/docker-compose.yml restart tunnel";
-
-            var comando = "docker";
-            var argumentos = "restart cloudflared-tunnel";
-
-
-            var processo = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = comando,
-                    Arguments = argumentos,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-
-            processo.Start();
-            string saida = await processo.StandardOutput.ReadToEndAsync();
-            string erro = await processo.StandardError.ReadToEndAsync();
-            processo.WaitForExit();
-
-            Console.WriteLine($"Tunnel reiniciado:\n{saida}");
-            if (!string.IsNullOrWhiteSpace(erro))
-                Console.Error.WriteLine($"Stderr: {erro}");
-        }
-
-
+        
 
         private ResponseViewModel<object> ValidarDadosDeEntrada(DeployRequest dadosDeploy)
         {

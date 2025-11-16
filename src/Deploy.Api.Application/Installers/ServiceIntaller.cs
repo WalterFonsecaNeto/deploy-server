@@ -23,6 +23,7 @@ namespace Deploy.Api.Application.Installers
             //Repositories
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<IProjetoRepository, ProjetoRepository>();
+            services.AddScoped<IDominioRepository, DominioRepository>();
         }
     }
 }

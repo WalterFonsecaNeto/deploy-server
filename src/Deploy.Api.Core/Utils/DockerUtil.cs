@@ -1,47 +1,13 @@
-using System.Diagnostics;
+using Docker.DotNet;
+using Docker.DotNet.Models;
 using System.Net.Sockets;
 
 namespace Deploy.Api.Core.Utils
 {
     public static class DockerUtil
     {
-        private static async Task<string> ExecutarComandoAsync(string comando, string argumentos)
-        {
-            var tcs = new TaskCompletionSource<string>();
-
-            var processo = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = comando,
-                    Arguments = argumentos,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-
-            string saida = "";
-            processo.OutputDataReceived += (s, e) => { if (e.Data != null) saida += e.Data + "\n"; };
-            processo.ErrorDataReceived += (s, e) => { if (e.Data != null) saida += e.Data + "\n"; };
-
-            processo.EnableRaisingEvents = true;
-            processo.Exited += (s, e) =>
-            {
-                if (processo.ExitCode == 0)
-                    tcs.SetResult(saida.Trim());
-                else
-                    tcs.SetException(new Exception($"Comando falhou: {comando} {argumentos}\n{saida}"));
-                processo.Dispose();
-            };
-
-            processo.Start();
-            processo.BeginOutputReadLine();
-            processo.BeginErrorReadLine();
-
-            return await tcs.Task;
-        }
+        private static DockerClient CriarCliente() =>
+            new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
 
         private static async Task<bool> PortaDisponivelAsync(int porta)
         {
@@ -52,79 +18,131 @@ namespace Deploy.Api.Core.Utils
                 listener.Stop();
                 return true;
             }
-            catch
-            {
-                return false;
-            }
+            catch { return false; }
         }
 
         public static async Task<int> GerarPortaDisponivelAsync()
         {
-            var portaMin = 1000;
-            var portaMax = 3999;
-            var aleatorio = new Random();
-
-            for (int i = 0; i < 50; i++)
+            var rnd = new Random();
+            for (int i = 0; i < 40; i++)
             {
-                var porta = aleatorio.Next(portaMin, portaMax + 1);
+                int porta = rnd.Next(2000, 6999);
+
                 if (await PortaDisponivelAsync(porta))
                     return porta;
             }
 
-            throw new Exception("Não foi possível encontrar uma porta disponível");
+            throw new Exception("Nenhuma porta disponível encontrada.");
         }
 
-        public static async Task<(bool existe, int? porta, bool rodando)> InspecionarContainerAsync(string nome)
+        public static async Task<(bool existe, int? porta)> InspecionarContainerAsync(string nome)
         {
-            try
-            {
-                var portaStr = await ExecutarComandoAsync("docker", $"inspect --format \"{{{{(index (index .NetworkSettings.Ports \\\"80/tcp\\\") 0).HostPort}}}}\" {nome}");
-                var rodando = !string.IsNullOrWhiteSpace(await ExecutarComandoAsync("docker", $"ps -q -f name={nome}"));
-                return (true, int.Parse(portaStr), rodando);
-            }
-            catch
-            {
-                return (false, null, false);
-            }
+            var client = CriarCliente();
+
+            var containers = await client.Containers.ListContainersAsync(
+                new ContainersListParameters { All = true });
+
+            var container = containers
+                .FirstOrDefault(c => c.Names.Contains("/" + nome));
+
+            if (container == null)
+                return (false, null);
+
+            var port = container.Ports.FirstOrDefault()?.PublicPort;
+            return (true, port);
         }
 
         public static async Task<(int porta, bool reutilizado)> ConstruirERodarAsync(string nome, string caminhoProjeto)
         {
-            Console.WriteLine($"[DockerUtil] INICIADO COM SUCESSO para o container: {nome}");
+            var client = CriarCliente();
 
-            var (existe, porta, _) = await InspecionarContainerAsync(nome);
-            var reutilizado = false;
+            var (existe, _) = await InspecionarContainerAsync(nome);
+            var reutilizado = existe;
 
             if (existe)
             {
-                Console.WriteLine($"[DockerUtil] Container existente encontrado na porta {porta}");
-                reutilizado = true;
-                await ExecutarComandoAsync("docker", $"rm -f {nome}");
+                Console.WriteLine($"🗑 Removendo container antigo {nome}");
+                await client.Containers.RemoveContainerAsync(nome,
+                    new ContainerRemoveParameters { Force = true });
             }
 
-            if (!porta.HasValue)
+            Console.WriteLine("📦 Gerando TAR do projeto...");
+            using var tarStream = TarUtil.CreateTarFromDirectory(caminhoProjeto);
+
+            Console.WriteLine("🐳 Buildando imagem Docker...");
+            await client.Images.BuildImageFromDockerfileAsync(
+                tarStream,
+                new ImageBuildParameters
+                {
+                    Dockerfile = "Dockerfile",
+                    Tags = new List<string> { nome },
+                }
+            );
+
+            var porta = await GerarPortaDisponivelAsync();
+
+            Console.WriteLine($"🚀 Criando container {nome} na porta interna {porta}…");
+            await client.Containers.CreateContainerAsync(new CreateContainerParameters
             {
-                porta = await GerarPortaDisponivelAsync();
-                Console.WriteLine($"[DockerUtil] Nova porta alocada: {porta}");
+                Image = nome,
+                Name = nome,
+                Env = new List<string>
+                {
+                    $"PORT={porta}"
+                },
+                HostConfig = new HostConfig
+                {
+                    RestartPolicy = new RestartPolicy
+                    {
+                        Name = RestartPolicyKind.UnlessStopped
+                    },
+                    NetworkMode = "host",
+                }
+            });
+
+
+            Console.WriteLine("▶ Iniciando container...");
+            await client.Containers.StartContainerAsync(nome, null);
+
+            Console.WriteLine($"✅ Container {nome} rodando na porta: {porta}");
+
+            return (porta, reutilizado);
+        }
+
+        public static async Task ReiniciarTunnelAsync()
+        {
+            var client = CriarCliente();
+
+            Console.WriteLine("▶ Localizando container servidor-pessoal-tunnel...");
+
+            var containers = await client.Containers.ListContainersAsync(
+                new ContainersListParameters { All = true }
+            );
+
+            var container = containers.FirstOrDefault(c =>
+                c.Names.Contains("/servidor-pessoal-tunnel")
+            );
+
+            if (container == null)
+            {
+                Console.WriteLine("❌ Container servidor-pessoal-tunnel não encontrado.");
+                return;
             }
 
-            Console.WriteLine("[DockerUtil]  Construindo imagem Docker...");
-            await ExecutarComandoAsync("docker", $"build -t {nome} \"{caminhoProjeto}\"");
+            Console.WriteLine("⛔ Parando container servidor-pessoal-tunnel...");
+            await client.Containers.StopContainerAsync(container.ID, new ContainerStopParameters());
 
-            Console.WriteLine($"[DockerUtil] Iniciando container na porta {porta}");
+            // ⏳ Cloudflare precisa de tempo para descartar caches internos
+            await Task.Delay(3000);
 
-            //HOST DOCKER
-            // await ExecutarComandoAsync("docker", $"run -d --restart unless-stopped --network host --name {nome} -e PORT=80 -e ASPNETCORE_URLS=http://0.0.0.0:80 {nome}");
+            Console.WriteLine("▶ Iniciando container servidor-pessoal-tunnel...");
+            await client.Containers.StartContainerAsync(container.ID, new ContainerStartParameters());
 
-            //BRIGE PADRÃO DOCKER
-            // await ExecutarComandoAsync("docker", $"run -d --restart unless-stopped -p {porta}:80 --name {nome} -e PORT=80 -e ASPNETCORE_URLS=http://0.0.0.0:80 {nome}");
-
-            //BRIGE CUSTOMIZADO DOCKER (Criado por mim)
-            await ExecutarComandoAsync("docker", $"run -d --name {nome} --restart unless-stopped -e PORT={porta} -e ASPNETCORE_URLS=http://0.0.0.0:{porta} {nome}");
-
-            Console.WriteLine("[DockerUtil] FINALIZADO COM SUCESSO");
-
-            return (porta.Value, reutilizado);
+            Console.WriteLine("✅ Tunnel reiniciado com sucesso (stop ➝ delay ➝ start).");
         }
+
+
+
+
     }
 }
